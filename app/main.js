@@ -1283,11 +1283,17 @@
     }
     photoMode = compact;
   }
-  /* Each plate keeps a stationary, stage-registered field while its opacity changes.
-     Reuse the hidden group for the next label; never animate plate width or position. */
+  /* A visible plate glides to the next row: its position, width and counter-moving field share one
+     transition, so the glass stays registered to the photo. It crossfades only when it first appears
+     or changes height. */
   function renderPhotoPlate(id, width, height, y, state) {
-    var key = id + '|' + width + '|' + height + '|' + y, plateEl, fieldEl;
-    if (key !== photoPlateKey) {
+    var key = id + '|' + width + '|' + height + '|' + y, plateEl, fieldEl, current = phPlates[photoPlateIndex];
+    var glide = !REDUCED_MOTION && !!state && /\bon-/.test(current.className) && current.style.height === height + 'px';
+    if (key !== photoPlateKey && glide) {
+      current.style.width = width + 'px';
+      current.style.transform = 'translate3d(0,' + y + 'px,0)';
+      photoPlateKey = key;
+    } else if (key !== photoPlateKey) {
       phPlates[photoPlateIndex].className = phPlates[photoPlateIndex].className.replace(' is-current', '') + ' is-outgoing';
       photoPlateIndex = 1 - photoPlateIndex;
       plateEl = phPlates[photoPlateIndex]; fieldEl = phFields[photoPlateIndex];

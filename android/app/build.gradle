@@ -1,0 +1,34 @@
+plugins { id 'com.android.application' }
+
+/* The TV UI is the shared app/ folder; only device.js is replaced for Android. */
+def webOut = layout.buildDirectory.dir('generated/cleanframe-web')
+def syncWeb = tasks.register('syncWeb', Sync) {
+    into webOut.map { it.dir('web') }
+    from('../../app') { exclude 'device.js', 'config.xml', 'assets/private-fonts/**' }
+    from('../web')
+}
+
+android {
+    namespace 'com.cleanframe.home'
+    compileSdk 36
+    defaultConfig {
+        applicationId 'com.cleanframe.home'
+        minSdk 26
+        targetSdk 36
+        versionCode 1
+        versionName '0.6.1-android'
+    }
+    buildTypes {
+        release {
+            minifyEnabled false
+            signingConfig signingConfigs.debug
+        }
+    }
+    sourceSets { main { assets.srcDirs += webOut } }
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_17
+        targetCompatibility JavaVersion.VERSION_17
+    }
+}
+
+tasks.named('preBuild') { dependsOn syncWeb }
